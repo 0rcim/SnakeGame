@@ -1,0 +1,14 @@
+.game-box{
+    display: flex; justify-content: center; align-items: center;
+    padding: 5rem 0;
+}
+.game-main{
+    fill: black;
+}
+.game-container{
+    display: flex;
+    background-color: #000;
+}
+.grid-row rect{
+    width: 10px; height: 10px;
+}
