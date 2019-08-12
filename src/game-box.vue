@@ -6,12 +6,12 @@
                 <g>
                     <!-- snake -->
                     <path 
-                        fill="blue" 
+                        fill="#fff" 
                         :d="getPath(d2tod1_snake)"
                     />
                     <!-- food -->
                     <path
-                        fill="tomato"
+                        fill="grey"
                         :d="getPath(d2tod1_food)"
                     />
                 </g>
@@ -89,8 +89,8 @@ export default {
     data () {
         return {
             config: {
-                width: 800,
-                height: 500,
+                width: 510,
+                height: 450,
                 speed: 80
             },
             x: 0,
@@ -115,6 +115,7 @@ export default {
     },
     created () {
         that = this;
+        // 游戏本体放在正中央
         that.snakeMap = [[Math.round(that.col/2), Math.round(that.row/2)], [Math.round(that.col/2), Math.round(that.row/2)+1]]
         // ---- //
         let arr = [];
@@ -128,15 +129,27 @@ export default {
             that.snakeMap.unshift([that.snakeMap[0][0], that.snakeMap[0][1]]);
             if (that.events.up) {
                 that.snakeMap[0][1]--;
+                if (that.snakeMap[0][1] < 0) {
+                    that.snakeMap[0][1] = that.row-1;
+                }
             }
             if (that.events.down) {
                 that.snakeMap[0][1]++;
+                if (that.snakeMap[0][1] >= that.row) {
+                    that.snakeMap[0][1] = 0;
+                }
             }
             if (that.events.left) {
                 that.snakeMap[0][0]--;
+                if (that.snakeMap[0][0] < 0) {
+                    that.snakeMap[0][0] = that.col-1;
+                }
             }
             if (that.events.right) {
                 that.snakeMap[0][0]++;
+                if (that.snakeMap[0][0] >= that.col) {
+                    that.snakeMap[0][0] = 0;
+                }
             }
             // 如果头接触边界，则关闭定时器
             // if (
