@@ -1,6 +1,9 @@
 <template>
     <div class="game-box">
         <div class="game-container">
+            <div class="score">
+                <span>score: <span v-text="score">0000</span></span>
+            </div>
             <svg class="game-main" :width="config.width" :height="config.height">
                 <!-- <ruler></ruler> -->
                 <g>
@@ -54,6 +57,11 @@ export default {
                 [ x+1 , y+1 ],
                 [ x , y+1 ],
             ]]
+        },
+        score () {
+            let len = (that.tot+'').length;
+            let sc = that.score_count;
+            return (Array(len).join(0) + sc).slice(-len);
         }
     },
     methods: {
@@ -84,48 +92,8 @@ export default {
             newRange.length && (that.food = JSON.parse(newRange[food_idx]));
             newRange.length || console.log("Game End!");
             console.log(newRange[food_idx])
-        }
-    },
-    data () {
-        return {
-            config: {
-                width: 510,
-                height: 450,
-                speed: 80
-            },
-            x: 0,
-            y: 0,
-            gameTimer: null,
-            snakeMap: [
-                
-            ],
-            // snake: {
-            //     head: [1,4],
-            //     end: [2,6]
-            // },
-            events: {
-                up: false,
-                down: false,
-                left: true,
-                right: false
-            },
-            food: [],
-            randomRange: "[]"
-        }
-    },
-    created () {
-        that = this;
-        // 游戏本体放在正中央
-        that.snakeMap = [[Math.round(that.col/2), Math.round(that.row/2)], [Math.round(that.col/2), Math.round(that.row/2)+1]]
-        // ---- //
-        let arr = [];
-        for (let i=0; i<that.row; i++) 
-            for (let j=0; j<that.col; j++) 
-                arr[i*that.row+j] = JSON.stringify([j, i]);
-        that.randomRange = JSON.stringify(arr);
-        // ---- //
-        that.setFood();
-        window.timer = that.gameTimer = setInterval(()=>{
+        },
+        startGameNow () {
             that.snakeMap.unshift([that.snakeMap[0][0], that.snakeMap[0][1]]);
             if (that.events.up) {
                 that.snakeMap[0][1]--;
@@ -163,13 +131,56 @@ export default {
                 that.snakeMap[0][0] === that.food[0] &&
                 that.snakeMap[0][1] === that.food[1]
             ) {
+                that.score_count++;
                 let l = that.snakeMap.length-1;
                 that.snakeMap.push([that.snakeMap[l][0], that.snakeMap[l][1]]);
                 that.setFood();
                 console.log("crossed!")
             }
             that.snakeMap.pop()
-        }, that.config.speed)
+        }
+    },
+    data () {
+        return {
+            config: {
+                width: 570,
+                height: 450,
+                speed: 80
+            },
+            x: 0,
+            y: 0,
+            gameTimer: null,
+            snakeMap: [
+                
+            ],
+            // snake: {
+            //     head: [1,4],
+            //     end: [2,6]
+            // },
+            events: {
+                up: false,
+                down: false,
+                left: true,
+                right: false
+            },
+            food: [],
+            randomRange: "[]",
+            score_count: 0
+        }
+    },
+    created () {
+        that = this;
+        // 游戏本体放在正中央
+        that.snakeMap = [[Math.round(that.col/2), Math.round(that.row/2)], [Math.round(that.col/2), Math.round(that.row/2)+1]]
+        // ---- //
+        let arr = [];
+        for (let i=0; i<that.row; i++) 
+            for (let j=0; j<that.col; j++) 
+                arr[i*that.row+j] = JSON.stringify([j, i]);
+        that.randomRange = JSON.stringify(arr);
+        // ---- //
+        that.setFood();
+        window.timer = that.gameTimer = setInterval(that.startGameNow, that.config.speed)
         document.onkeydown = function (e) {
             switch (e.keyCode) {
                 case 38: // ↑
@@ -195,6 +206,9 @@ export default {
                     that.events.down = false; 
                     that.events.left = false;
                     that.events.right = true;
+                    break;
+                case 32: // spacebar
+                    clearInterval(that.gameTimer)
                     break;
                 default: break;
             }

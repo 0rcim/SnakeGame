@@ -1,13 +1,21 @@
+@import "./font/font.css";
 .game-box{
     display: flex; justify-content: center; align-items: center;
-    padding: 5rem 0;
+    margin: 5rem 0;
 }
 .game-main{
-    fill: black;
+    box-sizing: border-box; border: .5px solid grey; border-left: 0; border-right: 0;
 }
 .game-container{
-    display: flex;
+    position: relative;
+    display: flex; padding: 2.5rem 0;
     background-color: #000;
+}
+.game-container .score{
+    position: absolute; top: 0; left: 1rem;
+    display: flex; align-items: center;
+    font-family: "Neue Pixel Sans"; font-size: 1.12rem; letter-spacing: 1px; color: #f2f2f2;
+    height: 2.5rem;
 }
 .grid-row rect{
     width: 10px; height: 10px;
