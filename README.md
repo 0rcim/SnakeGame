@@ -8,7 +8,7 @@
 ### 加载运行
 ``` shell
 # 运行
-npm run app
+npm run game
 ```
 ``` shell
 # 开发模式

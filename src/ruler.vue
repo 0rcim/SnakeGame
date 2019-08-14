@@ -1,7 +1,7 @@
 <template>
     <g>
         <g class="grid-row" v-for="(item, index) in screen" :key="index" :transform="line(index)">
-            <rect v-for="(v, i) in item" :key="i" :x="i*10" :y="0" :fill="color(v)" @mousemove="paint($event, index, i)" @mousedown="tst($event, index, i)" @mouseup="cancel($event, index, i)"/>
+            <rect v-for="(v, i) in item" :key="i" :x="i*10" :y="0" :fill="color(v)" @mousemove="paint($event, index, i)" @mousedown="tst($event, i, index)" @mouseup="cancel($event, index, i)"/>
         </g>
     </g>
 </template>
@@ -49,8 +49,8 @@ export default {
         tst (event, x, y) {
             that.canpaint = true;
             event.target.setAttribute("fill", "blue");
-            // console.log("head", [x, y])
-            console.log(JSON.parse(that.$parent.randomRange).indexOf(JSON.stringify([y,x])))
+            console.log("head", [x, y])
+            // console.log(JSON.parse(that.$parent.randomRange).indexOf(JSON.stringify([y,x])))
         }
     },
     data () {

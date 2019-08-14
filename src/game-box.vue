@@ -1,21 +1,32 @@
 <template>
     <div class="game-box">
         <div class="game-container">
+            <div class="game-settings">
+                
+            </div>
             <div class="score">
                 <span>score: <span v-text="score">0000</span></span>
             </div>
             <svg class="game-main" :width="config.width" :height="config.height">
                 <!-- <ruler></ruler> -->
                 <g>
-                    <!-- snake -->
-                    <path 
-                        fill="#fff" 
-                        :d="getPath(d2tod1_snake)"
-                    />
                     <!-- food -->
                     <path
-                        fill="grey"
-                        :d="getPath(d2tod1_food)"
+                        fill="red"
+                        :d="foodPath"
+                    />
+                    <!-- snake -->
+                    <!-- fill -->
+                    <path 
+                        :d="getPath(d2tod1_snake)"
+                        fill="white"
+                    />
+                    <!-- outline -->
+                    <path 
+                        :d="drawPath(snakeMap)"
+                        stroke="green"
+                        stroke-linecap="round"
+                        stroke-width="2"
                     />
                 </g>
             </svg>
@@ -25,6 +36,7 @@
 <script>
 var that = null;
 import ruler from "./ruler.vue";
+import { drawPath } from "./core";
 export default {
     name: "gameBox",
     components: { ruler },
@@ -37,6 +49,9 @@ export default {
         },
         tot () {
             return that.col*that.row;
+        },
+        foodPath () {
+            return `M${that.food[0]*10}\ ${that.food[1]*10}h10v10h-10z`
         },
         d2tod1_snake () { // 方块化为 4 个点 （平面转点）
             return that.snakeMap.map(item => {
@@ -65,6 +80,9 @@ export default {
         }
     },
     methods: {
+        drawPath (arr) {
+            return drawPath(arr);
+        },
         getPath (arr) { // 处理 d2tod1 并返回 path d
             return arr.map(item => {
                 return "M" + item.map(where => {
@@ -79,19 +97,19 @@ export default {
             return num;
         },
         setFood () { // 投放食物
-            let range = JSON.parse(that.randomRange);
-            for (let i=0, l=that.snakeMap.length; i<l; i++) {
-                let idx = range.indexOf(JSON.stringify(that.snakeMap[i]));
-                range[idx] = "";
+            let newFood = [0,0];
+            let emp = [];
+            var food = function () {
+                let x = that.random(0, that.col-1), y = that.random(0, that.row-1);
+                newFood = [x,y];
+                if (emp.indexOf(JSON.stringify) === -1) emp.push(JSON.stringify(newFood));
+                for (let i=0, l=that.snakeMap.length; i<l; i++) {
+                    if (newFood[0] === that.snakeMap[i][0] && newFood[1] === that.snakeMap[i][1]) food();
+                    if (emp.length >= that.tot) {console.log("game_end!"); that.gameEnd = true; break;}
+                }
             };
-            let newRange = range.filter(item => {
-                return item;
-            });
-            let food_idx = that.random(0, newRange.length-1);
-            console.log(food_idx, newRange)
-            newRange.length && (that.food = JSON.parse(newRange[food_idx]));
-            newRange.length || console.log("Game End!");
-            console.log(newRange[food_idx])
+            food();
+            that.gameEnd ? clearInterval(that.gameTimer) : (that.food = newFood);  
         },
         startGameNow () {
             that.snakeMap.unshift([that.snakeMap[0][0], that.snakeMap[0][1]]);
@@ -143,9 +161,9 @@ export default {
     data () {
         return {
             config: {
-                width: 570,
-                height: 450,
-                speed: 80
+                width: 510,
+                height: 510,
+                speed: 60
             },
             x: 0,
             y: 0,
@@ -165,13 +183,17 @@ export default {
             },
             food: [],
             randomRange: "[]",
-            score_count: 0
+            score_count: 0,
+            gameEnd: false
         }
     },
     created () {
         that = this;
         // 游戏本体放在正中央
         that.snakeMap = [[Math.round(that.col/2), Math.round(that.row/2)], [Math.round(that.col/2), Math.round(that.row/2)+1]]
+        // that.snakeMap = [[35,42],[35,43],[35,44]];
+        // that.food = [0,0];
+        // that.drawPath(that.snakeMap)
         // ---- //
         let arr = [];
         for (let i=0; i<that.row; i++) 
@@ -180,28 +202,32 @@ export default {
         that.randomRange = JSON.stringify(arr);
         // ---- //
         that.setFood();
-        window.timer = that.gameTimer = setInterval(that.startGameNow, that.config.speed)
+        // window.timer = that.gameTimer = setInterval(that.startGameNow, that.config.speed)
         document.onkeydown = function (e) {
             switch (e.keyCode) {
                 case 38: // ↑
+                    if (that.events.down) return;
                     that.events.up = true;
                     that.events.down = false; 
                     that.events.left = false;
                     that.events.right = false;
                     break;
                 case 40: // ↓  
+                    if (that.events.up) return;
                     that.events.up = false;
                     that.events.down = true; 
                     that.events.left = false;
                     that.events.right = false;
                     break;
                 case 37: // ← 
+                    if (that.events.right) return;
                     that.events.up = false;
                     that.events.down = false; 
                     that.events.left = true;
                     that.events.right = false;
                     break;
                 case 39: // →
+                    if (that.events.left) return;
                     that.events.up = false;
                     that.events.down = false; 
                     that.events.left = false;
@@ -218,5 +244,5 @@ export default {
     },
     mounted () {
     }
-}
+};
 </script>
