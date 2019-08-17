@@ -1,41 +1,11 @@
 <template>
     <div class="game-box">
         <div class="game-container">
-            <div class="game-settings">
-                <div class="panel" v-if="nav[0]">
-                    <div class="panel-title pixel-font"><span>PIXEL SNAKE</span></div>
-                    <div class="panel-content" ref="buttons">
-                        <button class="pixel-font">START</button>
-                        <button class="pixel-font" page="1" @click="navto($event)">OPTIONS</button>
-                        <button class="pixel-font" page="2" @click="navto($event)">RECORDS</button>
-                        <button class="pixel-font" page="3" @click="navto($event)">ABOUT</button>
-                    </div>
-                </div>
-                <div class="panel" v-if="nav[1]">
-                    <div class="panel-title pixel-font"><span>OPTIONS</span></div>
-                    <div class="panel-content" style="padding-top: 0; height: auto">
-                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
-                        <game-options></game-options>
-                    </div>
-                </div>
-                <div class="panel" v-if="nav[2]">
-                    <div class="panel-title pixel-font"><span>RECORDS</span></div>
-                    <div class="panel-content">
-                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
-                    </div>
-                </div>
-                <div class="panel" v-if="nav[3]">
-                    <div class="panel-title pixel-font"><span>ABOUT</span></div>
-                    <div class="panel-content">
-                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
-                    </div>
-                </div>
-            </div>
             <div class="score">
                 <span>SCORE: <span v-text="score">0000</span></span>
             </div>
             <svg class="game-main" :width="width" :height="height">
-                <ruler v-if="config.chessBorder"></ruler>
+                <ruler></ruler>
                 <g>
                     <!-- food -->
                     <path
@@ -44,16 +14,16 @@
                     />
                     <!-- snake -->
                     <!-- fill -->
-                    <path v-if="config.color !== 'none'"
+                    <!-- <path 
                         :d="getPath(d2tod1_snake)"
                         :fill="config.color"
-                    />
+                    /> -->
                     <!-- outline -->
                     <path 
                         :d="drawPath(snakeMap)"
                         :stroke="config.borderColor"
                         stroke-linecap="round"
-                        :stroke-width="config.borderWidth"
+                        stroke-width="2"
                     />
                 </g>
             </svg>
@@ -62,19 +32,19 @@
 </template>
 <script>
 var that = null;
-let tabIdx = 0;
-import gameOptions from "./game-options.vue";
+window.demo = {
+    snakeMap: [],
+    speed: 0,
+    control: [],
+    food: []
+};
+let tst_start = new Date().valueOf();
 import ruler from "./ruler.vue";
-import { drawPath, demo } from "./core";
+import { drawPath } from "./core";
 export default {
     name: "gameBox",
-    components: { gameOptions , ruler },
+    components: { ruler },
     computed: {
-        nav () {
-            let a = [false, false, false, false];
-            a.splice(that.act_page, 1, true);
-            return a;
-        },
         width () {
             return that.config.col*that.config.step;
         },
@@ -106,12 +76,6 @@ export default {
         }
     },
     methods: {
-        navto (e) {
-            let tar = e.target;
-            that.act_page = tar.getAttribute("page")*1;
-            that.gameOnFrontPage = !that.act_page;
-            !that.act_page && (tabIdx = 0);
-        },
         drawPath (arr) {
             return drawPath(arr, that.config.step);
         },
@@ -130,7 +94,6 @@ export default {
             return num;
         },
         setFood () { // 投放食物
-            if (that.config.isDemo) return;
             let newFood = [0,0];
             let emp = [];
             var food = function () {
@@ -143,27 +106,13 @@ export default {
                 }
             };
             food();
+            // console.log(new Date().valueOf()-tst_start, "food", that.food);
             that.gameEnd ? clearInterval(that.gameTimer) : (that.food = newFood);
+            window.demo.food.push(that.food);
+            console.log(that.food);
         },
         startGameNow () {
             that.snakeMap.unshift([that.snakeMap[0][0], that.snakeMap[0][1]]);
-            if (that.config.isDemo) {
-                that.config.demoTick.snake === demo.control.length && (that.config.demoTick.snake = 0);
-                // that.config.demoTick.food === demo.food.length-1 && (that.config.demoTick.food = 0);
-                var c = demo.control[that.config.demoTick.snake];
-                let head = that.snakeMap[0];
-                if (c && c.point[0] === head[0] && c.point[1] === head[1]) {
-                    // console.log(c)
-                    that.events = that.controls[c.event];
-                    that.config.demoTick.snake++;
-                    // loops
-                }
-                if (head[0] === that.food[0] && head[1] === that.food[1]) {
-                    that.config.demoTick.food++;
-                    that.food = demo.food[that.config.demoTick.food] || [-1,-1];
-                    // that.food = demo.food[that.config.demoTick.food];
-                }
-            }
             if (that.events.up) {
                 that.snakeMap[0][1]--;
                 if (that.snakeMap[0][1] < 0) {
@@ -214,25 +163,16 @@ export default {
             config: {
                 // width: 310,
                 // height: 350,
-                col: 39,
-                row: 39,
+                col: 35,
+                row: 35,
                 speed: 100,
-                isDemo: true,
-                demoTick: {
-                    snake: 0,
-                    food: 0
-                },
                 step: 15,
-                color: "#fff",
-                borderColor: "black",
-                borderWidth: 2,
-                chessBorder: true
+                color: "white",
+                borderColor: "black"
             },
-            act_page: 0,
             x: 0,
             y: 0,
             gameTimer: null,
-            demoTimer: null,
             snakeMap: [],
             events: {
                 up: false,
@@ -243,7 +183,7 @@ export default {
             food: [],
             score_count: 0,
             gameEnd: false,
-            gameOnFrontPage: true,
+            gameOnSettingsPage: true,
             controls: {
                 "up": {
                     up: true,
@@ -274,61 +214,46 @@ export default {
     },
     created () {
         that = this;
-        if (that.config.isDemo) {
-            that.snakeMap = demo.snakeMap;
-            that.config.col = demo.col;
-            that.config.row = demo.row;
-            that.food = demo.food[0];
-        }else{
-            // 游戏本体放在正中央
-            that.setFood();
-            that.snakeMap = [[Math.round(that.config.col/2), Math.round(that.config.row/2)], [Math.round(that.config.col/2), Math.round(that.config.row/2)+1]];
-        }
+        // 游戏本体放在正中央
+        that.snakeMap = [[Math.round(that.config.col/2), Math.round(that.config.row/2)], [Math.round(that.config.col/2), Math.round(that.config.row/2)+1]];
+        console.log(that.snakeMap)
         window.timer = that.gameTimer = setInterval(
-            that.startGameNow, 
-        that.config.isDemo ? demo.speed : that.config.speed
-        )
+            that.startGameNow, that.config.speed
+        );
+        window.demo.snakeMap = JSON.parse(JSON.stringify(that.snakeMap));
+        window.demo.speed = that.config.speed;
+        window.demo.col = that.config.col;
+        window.demo.row = that.config.row;
         // that.snakeMap = [[35,42],[35,43],[35,44]];
         // that.food = [0,0];
         // that.drawPath(that.snakeMap)
-        // that.setFood();
-        // clearInterval(that.gameTimer)
+        that.setFood();
     },
     mounted () {
         console.log(that.$refs);
         document.onkeydown = function (e) {
             switch (e.keyCode) {
                 case 38: // ↑
-                    if (that.config.isDemo) return;
-                    if (that.events.down || that.config.isDemo) return;
                     that.events = that.controls["up"];
-                    console.log("up", that.snakeMap[0]);
+                    window.demo.control.push({point: that.snakeMap[0], event: "up"});
                     break;
                 case 40: // ↓  
-                    if (that.config.isDemo) return;
                     if (that.events.up) return;
                     that.events = that.controls["down"];
+                    window.demo.control.push({point: that.snakeMap[0], event: "down"});
                     break;
                 case 37: // ← 
-                    if (that.config.isDemo) return;
                     if (that.events.right) return;
                     that.events = that.controls["left"];
+                    window.demo.control.push({point: that.snakeMap[0], event: "left"});
                     break;
                 case 39: // →
-                    if (that.config.isDemo) return;
                     if (that.events.left) return;
                     that.events = that.controls["right"];
+                    window.demo.control.push({point: that.snakeMap[0], event: "right"});
                     break;
                 case 32: // spacebar
                     clearInterval(that.gameTimer)
-                    break;
-                case 9: // tab
-                    if (that.gameOnFrontPage) {
-                        let buttons = that.$refs["buttons"].querySelectorAll("button");
-                        buttons[tabIdx%buttons.length].focus();
-                        tabIdx++;
-                        return false; // 阻止默认 tab 事件
-                    }
                     break;
                 default: break;
             };
