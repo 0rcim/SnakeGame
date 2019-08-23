@@ -35,7 +35,7 @@
                 <span>SCORE: <span v-text="score">0000</span></span>
             </div>
             <svg class="game-main" :width="width" :height="height">
-                <ruler v-if="config.chessBorder"></ruler>
+                <ruler v-if="config.chessboard" :col="config.col" :row="config.row" :size="config.step" :tot="tot"></ruler>
                 <g>
                     <!-- food -->
                     <path
@@ -44,12 +44,19 @@
                     />
                     <!-- snake -->
                     <!-- fill -->
-                    <path v-if="config.color !== 'none'"
+                    <path v-if="config.color !== 'none' && !config.cross"
                         :d="getPath(d2tod1_snake)"
                         :fill="config.color"
                     />
+                    <!-- fill -->
+                    <path v-if="config.cross"
+                        :d="getPath(d2tod1_snake)"
+                        stroke="black"
+                        stroke-width="2"
+                        :fill="config.color"
+                    />
                     <!-- outline -->
-                    <path 
+                    <path v-if="!config.cross"
                         :d="drawPath(snakeMap)"
                         :stroke="config.borderColor"
                         stroke-linecap="round"
@@ -57,6 +64,7 @@
                     />
                 </g>
             </svg>
+            <game-controller v-show="config.controller"></game-controller>
         </div>
     </div>
 </template>
@@ -64,11 +72,22 @@
 var that = null;
 let tabIdx = 0;
 import gameOptions from "./game-options.vue";
+import gameController from "./game-controller.vue";
 import ruler from "./ruler.vue";
-import { drawPath, demo } from "./core";
+// import { drawPath, demo, demoFn } from "./core";
+import core from "./core";
+let drawPath = core.drawPath;
+let demo = core.demo;
+console.log(demo)
+let demoFn = core.demoFn;
 export default {
     name: "gameBox",
-    components: { gameOptions , ruler },
+    components: { gameOptions , ruler , gameController },
+    watch: {
+        speed () {
+            that.rePlayDemo();
+        }
+    },
     computed: {
         nav () {
             let a = [false, false, false, false];
@@ -106,6 +125,26 @@ export default {
         }
     },
     methods: {
+        // 依赖 localStorage
+        // saveOpts () {
+        //     let opts = localStorage.getItem("opts");
+        //     localStorage.setItem("opts", JSON.stringify(that.$refs["opts"].groups));
+        //     console.log(JSON.parse(localStorage.getItem("opts")));
+        //     // let configs = localStorage.getItem("configs");
+        //     // localStorage.setItem("configs", JSON.stringify(that.$refs["opts"].groups));
+        // },
+        rePlayDemo () {
+            clearInterval(that.gameTimer);
+            demo = demoFn(that.config.col, that.config.row)
+            that.snakeMap = demo.snakeMap;
+            that.food = demo.food[0];
+            that.events = that.controls["left"];
+            that.config.demoTick = {snake: 0, food: 0};
+            window.timer = that.gameTimer = setInterval(
+                that.startGameNow,
+                that.config.speed
+            )
+        },
         navto (e) {
             let tar = e.target;
             that.act_page = tar.getAttribute("page")*1;
@@ -149,7 +188,8 @@ export default {
             that.snakeMap.unshift([that.snakeMap[0][0], that.snakeMap[0][1]]);
             if (that.config.isDemo) {
                 that.config.demoTick.snake === demo.control.length && (that.config.demoTick.snake = 0);
-                // that.config.demoTick.food === demo.food.length-1 && (that.config.demoTick.food = 0);
+                // that.config.demoTick.snake === demo.control.length && that.rePlayDemo();
+                // // that.config.demoTick.food === demo.food.length-1 && (that.config.demoTick.food = 0);
                 var c = demo.control[that.config.demoTick.snake];
                 let head = that.snakeMap[0];
                 if (c && c.point[0] === head[0] && c.point[1] === head[1]) {
@@ -211,6 +251,7 @@ export default {
     },
     data () {
         return {
+            speed: false,
             config: {
                 // width: 310,
                 // height: 350,
@@ -222,11 +263,13 @@ export default {
                     snake: 0,
                     food: 0
                 },
-                step: 15,
-                color: "#fff",
-                borderColor: "black",
+                step: 18,
+                color: "none",
+                borderColor: "white",
                 borderWidth: 2,
-                chessBorder: true
+                chessboard: false,
+                cross: false,
+                controller: false
             },
             act_page: 0,
             x: 0,
@@ -286,8 +329,16 @@ export default {
         }
         window.timer = that.gameTimer = setInterval(
             that.startGameNow, 
-        that.config.isDemo ? demo.speed : that.config.speed
+            that.config.isDemo ? demo.speed : that.config.speed
         )
+        console.log(JSON.parse(localStorage.getItem("configs")))
+        let config = localStorage.getItem("configs");
+        if (config) {
+            let cfg = JSON.parse(config);
+            for (let key in cfg) {
+                that.config[key] = cfg[key]
+            }
+        }
         // that.snakeMap = [[35,42],[35,43],[35,44]];
         // that.food = [0,0];
         // that.drawPath(that.snakeMap)
@@ -298,23 +349,23 @@ export default {
         console.log(that.$refs);
         document.onkeydown = function (e) {
             switch (e.keyCode) {
-                case 38: // ↑
+                case 38: case 87:// ↑ W
                     if (that.config.isDemo) return;
                     if (that.events.down || that.config.isDemo) return;
                     that.events = that.controls["up"];
                     console.log("up", that.snakeMap[0]);
                     break;
-                case 40: // ↓  
+                case 40: case 83:// ↓ S
                     if (that.config.isDemo) return;
                     if (that.events.up) return;
                     that.events = that.controls["down"];
                     break;
-                case 37: // ← 
+                case 37: case 65:// ← A
                     if (that.config.isDemo) return;
                     if (that.events.right) return;
                     that.events = that.controls["left"];
                     break;
-                case 39: // →
+                case 39: case 68: // → D
                     if (that.config.isDemo) return;
                     if (that.events.left) return;
                     that.events = that.controls["right"];
@@ -328,6 +379,11 @@ export default {
                         buttons[tabIdx%buttons.length].focus();
                         tabIdx++;
                         return false; // 阻止默认 tab 事件
+                    }
+                    break;
+                case 27: // escape
+                    if (that.act_page !== 0) {
+                        that.act_page = 0;
                     }
                     break;
                 default: break;

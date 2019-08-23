@@ -9,6 +9,7 @@
 var that = null;
 export default {
     name: "grid-row",
+    props: ["col", "row", "size"],
     computed: {
         width () {
             return that.col*that.size;
@@ -25,6 +26,11 @@ export default {
                 map.push(that.screenMap.slice(i, i+that.col));
             };
             return map;
+        },
+        screenMap () {
+            let screenMap = [];
+            for (let i=0; i<that.tot; screenMap[i++]=i%2===0?-2:2);
+            return screenMap;
         }
     },
     methods: {
@@ -56,12 +62,12 @@ export default {
     },
     data () {
         return {
-            size: 10,
-            col: 0,
-            row: 0,
+            // size: 10,
+            // col: 0,
+            // row: 0,
             canpaint: false,
             prev_cell: [],
-            screenMap: [],
+            // screenMap: [],
             ref: {
                 color: {
                     "-2": "#eee",
@@ -75,10 +81,10 @@ export default {
     },
     created () {
         that = this;
-        that.size = that.$parent.config.step;
-        that.col = that.$parent.config.col;
-        that.row = that.$parent.config.row;
-        for (let i=0; i<that.tot; that.screenMap[i++]=i%2===0?-2:2);
+        // that.size = that.$parent.config.step;
+        // that.col = that.$parent.config.col;
+        // that.row = that.$parent.config.row;
+        // for (let i=0; i<that.tot; that.screenMap[i++]=i%2===0?-2:2);
     }
 }
 </script>

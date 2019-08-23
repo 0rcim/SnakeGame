@@ -1,0 +1,59 @@
+<template>
+    <div class="controller">
+        <div class="outer">
+            <div v-for="(item, i) in controller" :key="item" :id="`c-${item}`" :class="{'active': active[i]}" @mousedown="mousedown($event, i)"></div>
+        </div>
+    </div>
+</template>
+<script>
+var that = null;
+export default {
+    name: "gameController",
+    computed: {
+        active () {
+            let bool = [false, false, false, false];
+            that.act_key !== -1 && (bool[that.act_key] = true);
+            return bool;
+        }
+    },
+    methods: {
+        mousedown (e, i) {
+            let tar = e.target;
+            that.act_key = i;
+            window.onmousemove = () => {
+                return false;
+            };
+            window.onmouseup = () => {
+                that.act_key = -1;
+                window.onmouseup = null;
+                return false;
+            };
+        }
+    },
+    created () {
+        that = this;
+    },
+    mounted () {
+        window.onkeydown = (event) => {
+            switch (event.keyCode) {
+                case 38: case 87: that.act_key = 0; break; // up
+                case 40: case 83: that.act_key = 1; break; // down
+                case 37: case 65: that.act_key = 2; break; // left
+                case 39: case 68: that.act_key = 3; break; // right
+                default: break;
+            }
+            window.onkeyup = () => {
+                that.act_key = -1;
+                window.onkeyup = null;
+                return false;
+            };
+        };
+    },
+    data () {
+        return {
+            act_key: -1,
+            controller: ["up", "down", "left", "right"]
+        }
+    }
+}
+</script>

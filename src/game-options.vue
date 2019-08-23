@@ -1,45 +1,74 @@
 <template>
     <div class="options pixel-font">
-        <div class="opt" v-for="(group, i) in groups" :key="i">
+        <div class="opt" v-for="(group, idx) in groups" :key="idx">
             <div class="option-sort">
                 <span v-text="group.title"></span>
             </div>
             <div class="option" v-for="(item, index) in group.opts" :key="index">
                 <div class="option-title"><span v-text="item.name"></span></div>
                 <div class="option-content type-themes" v-if="item.themes">
-                    <button :class="{'actived': item.act[i], 'chessboard': sty.chessboard}" v-for="(sty, i) in item.themes" :key="i">
+                    <button :class="{'actived': item.act[i], 'chessboard': sty.chessboard}" v-for="(sty, i) in item.val" :key="i" @click="opt_click(item, idx, index, i)">
                         <svg width="44" height="24">
-                            <path :fill="sty.fill" :stroke="sty.borderColor" :stroke-width="sty.borderWidth" :d="`M2 2h40v20h-40z${sty.cross ? 'M22 2v20' : ''}`"/>
+                            <path :fill="sty.color" :stroke="sty.borderColor" :stroke-width="sty.borderWidth" :d="`M2 2h40v20h-40z${sty.cross ? 'M22 2v20' : ''}`"/>
                         </svg>
                     </button>
                 </div>
                 <div class="option-content" v-else>
-                    <button v-for="(n, i) in item.opt" :class="{'actived': item.act[i]}" :key="n"><span v-text="n"></span></button>
+                    <button v-for="(n, i) in item.opt" :class="{'actived': item.act[i]}" :key="n" @click="opt_click(item, idx, index, i)"><span v-text="n"></span></button>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script>
+var that = null;
 export default {
     name: "gameOptions",
+    methods: {
+        opt_click (obj, idx, index, i) {
+            console.log(obj, idx, index, i, that.groups[idx].opts[index].act.length);
+            let n_act = that.fls(that.groups[idx].opts[index].act.length, i);
+            that.groups[idx].opts[index].act = n_act;
+            let change_tar = that.groups[idx].opts[index].val[i];
+            // let configs = {};
+            for (let key in change_tar) {
+                console.log(key)
+                that.$parent.config[key] = that.configs[key] = change_tar[key];
+            }
+            // 触发父组件 speed 的 watcher
+            that.$parent.speed = !that.$parent.speed;
+            localStorage.setItem("configs", JSON.stringify(that.configs));
+            
+            let opts = localStorage.getItem("opts");
+            localStorage.setItem("opts", JSON.stringify(that.groups));
+            console.log(JSON.parse(localStorage.getItem("opts")));
+        },
+        fls (num, i) {
+            let a = []; for (let i=0; i<num; a[i++] = false); a[i] = true; return a;
+        }
+    },
+    created () {
+        that = this;
+    },
     data () {
         return {
+            configs: {},
             groups: [{
                     title: "DISPLAY",
                     opts: [{
-                            name: "Screen Size",
+                            name: "Viewport",
                             opt: ["Large", "Medium", "Small"],
-                            val: [{'col': 50, 'row': 45},{'col': 39, 'row': 39},{'col': 20, 'row': 20}],
-                            act: [false, true, false]
+                            val: [{'col': 55, 'row': 39},{'col': 39, 'row': 39},{'col': 31, 'row': 31}],
+                            act: [false, false, true]
                         },{
                             name: "Themes",
-                            themes: [
-                                {'fill': 'none', 'borderColor': 'white', 'borderWidth': 2},
-                                {'fill': 'none', 'borderColor': 'black', 'borderWidth': 2, 'chessboard': true},
-                                {'fill': 'grey', 'borderColor': 'black', 'borderWidth': 2, 'chessboard': true},
-                                {'fill': 'white', 'borderColor': 'black', 'borderWidth': 2},
-                                {'fill': 'white', 'borderColor': 'black', 'borderWidth': 2, 'cross': true}
+                            themes: true,
+                            val: [
+                                {'color': 'none', 'borderColor': 'white', 'borderWidth': 2, 'chessboard': false, 'cross': false},
+                                {'color': 'none', 'borderColor': 'black', 'borderWidth': 2, 'chessboard': true, 'cross': false},
+                                {'color': 'gray', 'borderColor': 'black', 'borderWidth': 2, 'chessboard': true, 'cross': false},
+                                {'color': 'white', 'borderColor': 'black', 'borderWidth': 0, 'chessboard': false, 'cross': false},
+                                {'color': 'white', 'borderColor': 'black', 'borderWidth': 2, 'chessboard': false, 'cross': true}
                             ],
                             act: [true, false, false, false]
                         },{
@@ -56,18 +85,26 @@ export default {
                             act: [true, false]
                         },{
                             name: "Cell",
-                            opt: ["10x10", "12x12", "15x15"],
-                            val: [{'step':10},{'step':12},{'step':15}],
+                            opt: ["15x15", "16x16", "18x18"],
+                            val: [{'step':15},{'step':16},{'step':18}],
                             act: [false, false, true]
                         },{
                             name: "Controller",
-                            opt: ["WSAD", "TDLR", "Both", "none"],
-                            act: [false, true, false, false]
+                            opt: ["OFF", "ON"],
+                            val: [{'controller':false},{'controller':true}],
+                            act: [true, false]
                         }
                     ]
                 }
             ]
         }
+    },
+    mounted () {
+        let opts = localStorage.getItem("opts");
+        let configs = localStorage.getItem("configs");
+        console.log(JSON.parse(opts))
+        opts && (that.groups = JSON.parse(opts));
+        configs && (that.configs = JSON.parse(configs));
     }
 }
 </script>
