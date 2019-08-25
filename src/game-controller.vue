@@ -28,6 +28,9 @@ export default {
                 window.onmouseup = null;
                 return false;
             };
+            const rsMap = ["down", "up", "right", "left"];
+            if (that.$parent.events[rsMap[i]]) return;
+            that.$parent.events = that.$parent.controls[that.controller[i]];
         }
     },
     created () {

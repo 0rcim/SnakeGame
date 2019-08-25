@@ -1,11 +1,11 @@
 <template>
     <div class="game-box">
         <div class="game-container">
-            <div class="game-settings">
+            <div class="game-settings" v-if="cover">
                 <div class="panel" v-if="nav[0]">
                     <div class="panel-title pixel-font"><span>PIXEL SNAKE</span></div>
                     <div class="panel-content" ref="buttons">
-                        <button class="pixel-font">START</button>
+                        <button class="pixel-font" @click="game()">START</button>
                         <button class="pixel-font" page="1" @click="navto($event)">OPTIONS</button>
                         <button class="pixel-font" page="2" @click="navto($event)">RECORDS</button>
                         <button class="pixel-font" page="3" @click="navto($event)">ABOUT</button>
@@ -20,14 +20,25 @@
                 </div>
                 <div class="panel" v-if="nav[2]">
                     <div class="panel-title pixel-font"><span>RECORDS</span></div>
-                    <div class="panel-content">
+                    <div class="panel-content" style="justify-content:flex-start;">
                         <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
+                        <game-records></game-records>
                     </div>
                 </div>
                 <div class="panel" v-if="nav[3]">
                     <div class="panel-title pixel-font"><span>ABOUT</span></div>
                     <div class="panel-content">
                         <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
+                        <game-about></game-about>
+                    </div>
+                </div>
+            </div>
+            <div class="game-settings break" v-if="brk">
+                <div class="panel">
+                    <div class="panel-content" ref="buttons">
+                        <button class="pixel-font" @click="resume">RESUME</button>
+                        <button class="pixel-font" @click="retry">RETRY</button>
+                        <button class="pixel-font" @click="home">HOME</button>
                     </div>
                 </div>
             </div>
@@ -72,6 +83,8 @@
 var that = null;
 let tabIdx = 0;
 import gameOptions from "./game-options.vue";
+import gameRecords from "./game-records.vue";
+import gameAbout from "./game-about.vue";
 import gameController from "./game-controller.vue";
 import ruler from "./ruler.vue";
 // import { drawPath, demo, demoFn } from "./core";
@@ -82,7 +95,7 @@ console.log(demo)
 let demoFn = core.demoFn;
 export default {
     name: "gameBox",
-    components: { gameOptions , ruler , gameController },
+    components: { gameOptions , gameRecords, gameAbout , ruler , gameController },
     watch: {
         speed () {
             that.rePlayDemo();
@@ -133,7 +146,47 @@ export default {
         //     // let configs = localStorage.getItem("configs");
         //     // localStorage.setItem("configs", JSON.stringify(that.$refs["opts"].groups));
         // },
+        game () {
+            clearInterval(that.gameTimer);
+            that.config.isDemo = false;
+            that.cover = false;
+            that.setFood();
+            that.snakeMap = [[Math.round(that.config.col/2), Math.round(that.config.row/2)], [Math.round(that.config.col/2), Math.round(that.config.row/2)+1]];
+            that.events = that.controls["up"];
+            that.config.demoTick = {snake: 0, food: 0};
+            that.score_count = 0;
+            setTimeout(() => {
+                window.timer = that.gameTimer = setInterval(
+                    that.startGameNow,
+                    that.config.speed
+                );
+            }, 1500)
+        },
+        resume () {
+            that.brk = false;
+            setTimeout(() => {
+                window.timer = that.gameTimer = setInterval(
+                    that.startGameNow,
+                    that.config.speed
+                );
+            }, 1500)
+        },
+        retry () {
+            that.score_count = 0;
+            that.brk = false;
+            that.game();
+        },
+        home () {
+            that.brk = false;
+            that.config.isDemo = true;
+            that.cover = true;
+            that.rePlayDemo();
+        },
+        wasted () { // 游戏结束
+            console.log("游戏结束", that.score_count);
+        },
         rePlayDemo () {
+            that.score_count = 0;
             clearInterval(that.gameTimer);
             demo = demoFn(that.config.col, that.config.row)
             that.snakeMap = demo.snakeMap;
@@ -252,6 +305,7 @@ export default {
     data () {
         return {
             speed: false,
+            brk: false, // 控制游戏暂停时的对话框显示
             config: {
                 // width: 310,
                 // height: 350,
@@ -272,6 +326,7 @@ export default {
                 controller: false
             },
             act_page: 0,
+            cover: true,
             x: 0,
             y: 0,
             gameTimer: null,
@@ -351,9 +406,8 @@ export default {
             switch (e.keyCode) {
                 case 38: case 87:// ↑ W
                     if (that.config.isDemo) return;
-                    if (that.events.down || that.config.isDemo) return;
+                    if (that.events.down) return;
                     that.events = that.controls["up"];
-                    console.log("up", that.snakeMap[0]);
                     break;
                 case 40: case 83:// ↓ S
                     if (that.config.isDemo) return;
@@ -384,6 +438,12 @@ export default {
                 case 27: // escape
                     if (that.act_page !== 0) {
                         that.act_page = 0;
+                    }
+                    console.log("esc")
+                    if (!that.config.isDemo) { // 游戏正在进行
+                        clearInterval(that.gameTimer);
+                        that.brk = true; // 游戏暂停并显示对话框
+                        return false;
                     }
                     break;
                 default: break;
