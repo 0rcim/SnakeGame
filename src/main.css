@@ -177,11 +177,15 @@
     display: flex; 
     padding: .25rem 0; font-size: 1rem;
 }
-.records .body .row:nth-child(1) .col:nth-child(2){color: #fea302}
-.records .body .row:nth-child(2) .col:nth-child(2){color: #8496a9}
-.records .body .row:nth-child(3) .col:nth-child(2){color: #fcdb88}
+.records .body .row:nth-child(1) .col:nth-child(1){color: #fea302}
+.records .body .row:nth-child(2) .col:nth-child(1){color: #8496a9}
+.records .body .row:nth-child(3) .col:nth-child(1){color: #fcdb88}
 .records .body .col{
     width: 5.5rem; padding-right: .5rem; letter-spacing: 1px;
+}
+.records .body .row > .col:nth-child(1){
+    overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
 }
 .records .body .row > .col:nth-child(4){
     overflow: hidden; width: calc(100% - 18.5rem); 
@@ -215,4 +219,15 @@
 }
 .game-settings.break .panel .panel-content{
     padding-top: 0; height: 14rem; min-height: auto;
+}
+.game-settings.over .panel-title{
+    color: red;
+}
+input.inputBox{
+    display: block; box-sizing: border-box; background-color: transparent; border: 0; 
+    border-bottom: 2px solid #fff; font-size: 1.25rem; color: #666; padding: .25rem 0;
+    outline: none; text-align: center;
+}
+input.inputBox:focus{
+    border-color: green;
 }

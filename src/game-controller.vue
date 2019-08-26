@@ -28,6 +28,7 @@ export default {
                 window.onmouseup = null;
                 return false;
             };
+            if (that.$parent.config.isDemo) return;
             const rsMap = ["down", "up", "right", "left"];
             if (that.$parent.events[rsMap[i]]) return;
             that.$parent.events = that.$parent.controls[that.controller[i]];
@@ -38,18 +39,20 @@ export default {
     },
     mounted () {
         window.onkeydown = (event) => {
-            switch (event.keyCode) {
-                case 38: case 87: that.act_key = 0; break; // up
-                case 40: case 83: that.act_key = 1; break; // down
-                case 37: case 65: that.act_key = 2; break; // left
-                case 39: case 68: that.act_key = 3; break; // right
-                default: break;
+            if (that.$parent.controllerShouldReflect) {
+                switch (event.keyCode) {
+                    case 38: case 87: that.act_key = 0; break; // up
+                    case 40: case 83: that.act_key = 1; break; // down
+                    case 37: case 65: that.act_key = 2; break; // left
+                    case 39: case 68: that.act_key = 3; break; // right
+                    default: break;
+                }
+                window.onkeyup = () => {
+                    that.act_key = -1;
+                    window.onkeyup = null;
+                    return false;
+                };
             }
-            window.onkeyup = () => {
-                that.act_key = -1;
-                window.onkeyup = null;
-                return false;
-            };
         };
     },
     data () {

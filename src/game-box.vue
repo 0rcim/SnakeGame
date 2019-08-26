@@ -1,7 +1,7 @@
 <template>
     <div class="game-box">
         <div class="game-container">
-            <div class="game-settings" v-if="cover">
+            <div class="game-settings" v-show="cover">
                 <div class="panel" v-if="nav[0]">
                     <div class="panel-title pixel-font"><span>PIXEL SNAKE</span></div>
                     <div class="panel-content" ref="buttons">
@@ -11,14 +11,14 @@
                         <button class="pixel-font" page="3" @click="navto($event)">ABOUT</button>
                     </div>
                 </div>
-                <div class="panel" v-if="nav[1]">
+                <div class="panel" v-show="nav[1]">
                     <div class="panel-title pixel-font"><span>OPTIONS</span></div>
                     <div class="panel-content" style="padding-top: 0; height: auto">
                         <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
-                        <game-options></game-options>
+                        <game-options ref="game-options"></game-options>
                     </div>
                 </div>
-                <div class="panel" v-if="nav[2]">
+                <div class="panel" v-if="nav[2]" style="height: auto;">
                     <div class="panel-title pixel-font"><span>RECORDS</span></div>
                     <div class="panel-content" style="justify-content:flex-start;">
                         <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
@@ -42,8 +42,25 @@
                     </div>
                 </div>
             </div>
+            <div class="game-settings over" v-if="ovr">
+                <div class="panel">
+                    <div class="panel-title pixel-font"><span>Game Over</span></div>
+                    <div class="panel-content" ref="buttons">
+                        <div class="option back-btn pixel-font"><button @click="ovr_esc">&lt;</button></div>
+                        <p class="pixel-font">New Record!</p>
+                        <p class="pixel-font">Score: {{ score_count }}, Time: {{ms2MMssms(gameOverTimeStamp - gameStartTimeStamp)}}</p>
+                        <p>
+                            <input class="inputBox pixel-font" type="text" placeholder="your name here" maxlength="20" @focus="controllerShouldReflect = false" @blur="controllerShouldReflect = true" v-model="player_name">
+                        </p>
+                        <button class="pixel-font" @click="ovr_retry">RETRY</button>
+                    </div>
+                </div>
+            </div>
             <div class="score">
-                <span>SCORE: <span v-text="score">0000</span></span>
+                <span>SCORE: <span v-text="score"></span></span>
+            </div>
+            <div class="score" style="right: 1rem; left: auto;">
+                <span>RECORD: <span v-text="record"></span></span>
             </div>
             <svg class="game-main" :width="width" :height="height">
                 <ruler v-if="config.chessboard" :col="config.col" :row="config.row" :size="config.step" :tot="tot"></ruler>
@@ -102,6 +119,13 @@ export default {
         }
     },
     computed: {
+        strSnakeMapArr () {
+            let cp = JSON.parse(JSON.stringify(that.snakeMap));
+            cp.splice(0, 3);
+            return cp.map(item => {
+                return JSON.stringify(item)
+            });
+        },
         nav () {
             let a = [false, false, false, false];
             a.splice(that.act_page, 1, true);
@@ -135,17 +159,21 @@ export default {
             let len = (that.tot+'').length;
             let sc = that.score_count;
             return (Array(len).join(0) + sc).slice(-len);
+        },
+        record () {
+            let rd = localStorage.getItem("records") ? JSON.parse(localStorage.getItem("records")) : [["", 0, 0, "-"]];
+            return that.fx(Math.max(rd[0][1], that.score_count), (that.tot+'').length);
         }
     },
     methods: {
-        // 依赖 localStorage
-        // saveOpts () {
-        //     let opts = localStorage.getItem("opts");
-        //     localStorage.setItem("opts", JSON.stringify(that.$refs["opts"].groups));
-        //     console.log(JSON.parse(localStorage.getItem("opts")));
-        //     // let configs = localStorage.getItem("configs");
-        //     // localStorage.setItem("configs", JSON.stringify(that.$refs["opts"].groups));
-        // },
+        fx (num, len) {
+            return (Array(len).join(0) + num).slice(-len);
+        },
+        ms2MMssms (n) {
+            let t = Math.round(n/100)*100;
+            let min = this.fx(Math.floor(t/60/1000), 2), sec = this.fx(Math.floor(t/1000)%60, 2), ms = t%1000/100;
+            return `${min}'${sec}"${ms}`;
+        },
         game () {
             clearInterval(that.gameTimer);
             that.config.isDemo = false;
@@ -156,6 +184,7 @@ export default {
             that.config.demoTick = {snake: 0, food: 0};
             that.score_count = 0;
             setTimeout(() => {
+                that.gameStartTimeStamp = new Date().valueOf();
                 window.timer = that.gameTimer = setInterval(
                     that.startGameNow,
                     that.config.speed
@@ -174,15 +203,42 @@ export default {
         retry () {
             that.score_count = 0;
             that.brk = false;
+            that.ovr = false;
             that.game();
         },
         home () {
             that.brk = false;
+            that.ovr = false;
             that.config.isDemo = true;
             that.cover = true;
             that.rePlayDemo();
         },
+        ovr_esc () {
+            let rds = localStorage.getItem("records") ? JSON.parse(localStorage.getItem("records")) : [];
+            let cfgs = that.$refs["game-options"].getOptLabels();
+            let rc_item = [
+                that.player_name,
+                that.score_count,
+                that.gameOverTimeStamp - that.gameStartTimeStamp,
+                [cfgs["DISPLAY"]["Speed"], cfgs["DISPLAY"]["Viewport"], cfgs["BASIC"]["Cell"]].join(",\ ")
+            ];
+            rds.push(rc_item);
+            rds.sort((s1, s2) => {
+                return s2[1] - s1[1];
+            });
+            rds.splice(10);
+            localStorage.setItem("records", JSON.stringify(rds));
+            console.log(rc_item);
+            that.home();
+        },
+        ovr_retry () {
+            that.retry();
+            console.log(that.player_name);
+        },
         wasted () { // 游戏结束
+            clearInterval(that.gameTimer);
+            that.gameOverTimeStamp = new Date().valueOf();
+            that.ovr = true;
             console.log("游戏结束", that.score_count);
         },
         rePlayDemo () {
@@ -241,54 +297,29 @@ export default {
             that.snakeMap.unshift([that.snakeMap[0][0], that.snakeMap[0][1]]);
             if (that.config.isDemo) {
                 that.config.demoTick.snake === demo.control.length && (that.config.demoTick.snake = 0);
-                // that.config.demoTick.snake === demo.control.length && that.rePlayDemo();
-                // // that.config.demoTick.food === demo.food.length-1 && (that.config.demoTick.food = 0);
                 var c = demo.control[that.config.demoTick.snake];
                 let head = that.snakeMap[0];
                 if (c && c.point[0] === head[0] && c.point[1] === head[1]) {
-                    // console.log(c)
                     that.events = that.controls[c.event];
                     that.config.demoTick.snake++;
-                    // loops
                 }
                 if (head[0] === that.food[0] && head[1] === that.food[1]) {
                     that.config.demoTick.food++;
                     that.food = demo.food[that.config.demoTick.food] || [-1,-1];
-                    // that.food = demo.food[that.config.demoTick.food];
                 }
             }
             if (that.events.up) {
                 that.snakeMap[0][1]--;
-                if (that.snakeMap[0][1] < 0) {
-                    that.snakeMap[0][1] = that.config.row-1;
-                }
             }
             if (that.events.down) {
                 that.snakeMap[0][1]++;
-                if (that.snakeMap[0][1] >= that.config.row) {
-                    that.snakeMap[0][1] = 0;
-                }
             }
             if (that.events.left) {
                 that.snakeMap[0][0]--;
-                if (that.snakeMap[0][0] < 0) {
-                    that.snakeMap[0][0] = that.config.col-1;
-                }
             }
             if (that.events.right) {
                 that.snakeMap[0][0]++;
-                if (that.snakeMap[0][0] >= that.config.col) {
-                    that.snakeMap[0][0] = 0;
-                }
             }
-            // 如果头接触边界，则关闭定时器
-            // if (
-            //     that.snakeMap[0][0]*that.config.step >= that.config.height || that.snakeMap[0][0] < 0 || 
-            //     that.snakeMap[0][1]*that.config.step >= that.config.width || that.snakeMap[0][1] < 0
-            // ) {
-            //     clearInterval(that.gameTimer);
-            // }
-            // 如果碰到食物
             if (
                 that.snakeMap[0][0] === that.food[0] &&
                 that.snakeMap[0][1] === that.food[1]
@@ -297,15 +328,26 @@ export default {
                 let l = that.snakeMap.length-1;
                 that.snakeMap.push([that.snakeMap[l][0], that.snakeMap[l][1]]);
                 that.setFood();
-                // console.log("crossed!")
             }
-            that.snakeMap.pop()
+            that.snakeMap.pop();
+            let hd = that.snakeMap[0];
+            if (
+                hd[0] === that.config.col || hd[0] === -1 ||
+                hd[1] === that.config.row || hd[1] === -1 
+                || (that.strSnakeMapArr.indexOf(JSON.stringify(hd))) !== -1 // 撞到了自己
+            ) {
+                that.wasted(); // GAMEOVER！
+            }
+            // console.log(hd[0], that.config.row === hd[0], that.config.col === hd[1]);
         }
     },
     data () {
         return {
+            gameStartTimeStamp: -1,
+            gameOverTimeStamp: -1,
             speed: false,
             brk: false, // 控制游戏暂停时的对话框显示
+            ovr: false, // 控制游戏结束时的对话框显示
             config: {
                 // width: 310,
                 // height: 350,
@@ -325,8 +367,10 @@ export default {
                 cross: false,
                 controller: false
             },
+            controllerShouldReflect: true,
             act_page: 0,
             cover: true,
+            player_name: "",
             x: 0,
             y: 0,
             gameTimer: null,
@@ -405,27 +449,32 @@ export default {
         document.onkeydown = function (e) {
             switch (e.keyCode) {
                 case 38: case 87:// ↑ W
-                    if (that.config.isDemo) return;
+                    if (that.config.isDemo || that.brk) return;
                     if (that.events.down) return;
                     that.events = that.controls["up"];
                     break;
                 case 40: case 83:// ↓ S
-                    if (that.config.isDemo) return;
+                    if (that.config.isDemo || that.brk) return;
                     if (that.events.up) return;
                     that.events = that.controls["down"];
                     break;
                 case 37: case 65:// ← A
-                    if (that.config.isDemo) return;
+                    if (that.config.isDemo || that.brk) return;
                     if (that.events.right) return;
                     that.events = that.controls["left"];
                     break;
                 case 39: case 68: // → D
-                    if (that.config.isDemo) return;
+                    if (that.config.isDemo || that.brk) return;
                     if (that.events.left) return;
                     that.events = that.controls["right"];
                     break;
                 case 32: // spacebar
-                    clearInterval(that.gameTimer)
+                    // clearInterval(that.gameTimer)
+                    if (!that.config.isDemo) { // 游戏正在进行
+                        clearInterval(that.gameTimer);
+                        that.brk = true; // 游戏暂停并显示对话框
+                        return false;
+                    }
                     break;
                 case 9: // tab
                     if (that.gameOnFrontPage) {
@@ -440,10 +489,13 @@ export default {
                         that.act_page = 0;
                     }
                     console.log("esc")
-                    if (!that.config.isDemo) { // 游戏正在进行
+                    if (!that.config.isDemo && !that.ovr) { // 游戏正在进行
                         clearInterval(that.gameTimer);
                         that.brk = true; // 游戏暂停并显示对话框
                         return false;
+                    }
+                    if (that.ovr) { // 游戏结束时按下esc键
+                        that.ovr_esc();
                     }
                     break;
                 default: break;

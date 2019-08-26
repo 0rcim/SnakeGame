@@ -45,6 +45,19 @@ export default {
         },
         fls (num, i) {
             let a = []; for (let i=0; i<num; a[i++] = false); a[i] = true; return a;
+        },
+        getOptLabels () {
+            let cfg = {};
+            that.groups.forEach((a, b) => {
+                cfg[a.title] = {};
+                a.opts.forEach((c, d) => {
+                    if (c.opt) cfg[a.title][c.name] = c.opt.filter((e, f) => {
+                        return c.act[f];
+                    });
+                
+                })
+            });
+            return cfg;
         }
     },
     created () {
