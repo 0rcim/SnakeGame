@@ -4,7 +4,7 @@
 【webpack + VueJS + SVG 练习】
 一个本地单机小游戏，使用SVG制作  
 ### 截图  
-![screen-capture](https://www.cnblogs.com/images/cnblogs_com/Orcim/1508992/o_screen-shot.png)
+![screen-capture](https://images.cnblogs.com/cnblogs_com/Orcim/1508992/o_vue-snakegame-project.png)
 ### 加载运行
 ``` shell
 # 运行

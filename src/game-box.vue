@@ -47,10 +47,10 @@
                     <div class="panel-title pixel-font"><span>Game Over</span></div>
                     <div class="panel-content" ref="buttons">
                         <div class="option back-btn pixel-font"><button @click="ovr_esc">&lt;</button></div>
-                        <p class="pixel-font">New Record!</p>
                         <p class="pixel-font">Score: {{ score_count }}, Time: {{ms2MMssms(gameOverTimeStamp - gameStartTimeStamp)}}</p>
-                        <p>
-                            <input class="inputBox pixel-font" type="text" placeholder="your name here" maxlength="20" @focus="controllerShouldReflect = false" @blur="controllerShouldReflect = true" v-model="player_name">
+                        <p class="pixel-font" v-if="isNewRecord">New Record!</p>
+                        <p v-if="isNewRecord">
+                            <input class="inputBox pixel-font" type="text" placeholder="your name here" maxlength="20" @focus="controllerShouldReflect = false; $event.target.focus();" @blur="controllerShouldReflect = true" v-model="player_name">
                         </p>
                         <button class="pixel-font" @click="ovr_retry">RETRY</button>
                     </div>
@@ -213,7 +213,7 @@ export default {
             that.cover = true;
             that.rePlayDemo();
         },
-        ovr_esc () {
+        addRecord () {
             let rds = localStorage.getItem("records") ? JSON.parse(localStorage.getItem("records")) : [];
             let cfgs = that.$refs["game-options"].getOptLabels();
             let rc_item = [
@@ -229,15 +229,29 @@ export default {
             rds.splice(10);
             localStorage.setItem("records", JSON.stringify(rds));
             console.log(rc_item);
+            that.isNewRecord = false;
+        },
+        ovr_esc () {
+            that.addRecord();
             that.home();
         },
         ovr_retry () {
+            that.addRecord();
             that.retry();
             console.log(that.player_name);
         },
         wasted () { // 游戏结束
             clearInterval(that.gameTimer);
             that.gameOverTimeStamp = new Date().valueOf();
+            // 判断刷新记录
+            let rds = localStorage.getItem("records") ? JSON.parse(localStorage.getItem("records")) : [];
+            if (rds.length === 10) {
+                rds.some((sc, idx) => {
+                    return that.score_count > sc[1];
+                }) && (that.isNewRecord = true);
+            }else{
+                that.isNewRecord = true;
+            }
             that.ovr = true;
             console.log("游戏结束", that.score_count);
         },
@@ -343,6 +357,7 @@ export default {
     },
     data () {
         return {
+            isNewRecord: false,
             gameStartTimeStamp: -1,
             gameOverTimeStamp: -1,
             speed: false,
@@ -468,14 +483,14 @@ export default {
                     if (that.events.left) return;
                     that.events = that.controls["right"];
                     break;
-                case 32: // spacebar
-                    // clearInterval(that.gameTimer)
-                    if (!that.config.isDemo) { // 游戏正在进行
-                        clearInterval(that.gameTimer);
-                        that.brk = true; // 游戏暂停并显示对话框
-                        return false;
-                    }
-                    break;
+                // case 32: // spacebar
+                //     // clearInterval(that.gameTimer)
+                //     if (!that.config.isDemo) { // 游戏正在进行
+                //         clearInterval(that.gameTimer);
+                //         that.brk = true; // 游戏暂停并显示对话框
+                //         return false;
+                //     }
+                //     break;
                 case 9: // tab
                     if (that.gameOnFrontPage) {
                         let buttons = that.$refs["buttons"].querySelectorAll("button");
