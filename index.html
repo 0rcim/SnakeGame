@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="initial-scale=0.8">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="./src/font/font.css">
     <title>SnakeGame</title>
@@ -11,4 +11,10 @@
     <div id="game-box"></div>
 </body>
 <script src="./dist/build.js"></script>
+<script>
+    // 阻止浏览器双击放大手势
+    document.ontouchend = function (e) {
+        e.preventDefault();
+    }
+</script>
 </html>

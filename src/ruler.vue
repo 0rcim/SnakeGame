@@ -44,30 +44,23 @@ export default {
             if (!that.canpaint) return;
             that.canpaint && e.target.setAttribute("fill", "blue");
             if (that.canpaint && (that.prev_cell[0] !== x || that.prev_cell[1] !== y)) {
-                // console.log("body", [x, y])
             }
             that.prev_cell = [x, y];
         },
         cancel (e, x, y) {
             that.canpaint = false;
-            // console.log("end", [x, y])
         },
         tst (event, x, y) {
             that.canpaint = true;
             var tar = event.target;
             tar.getAttribute("fill") === "blue" ? tar.setAttribute("fill", tar.getAttribute("data-fill")) : tar.setAttribute("fill", "blue")
             console.log("head", [x, y])
-            // console.log(JSON.parse(that.$parent.randomRange).indexOf(JSON.stringify([y,x])))
         }
     },
     data () {
         return {
-            // size: 10,
-            // col: 0,
-            // row: 0,
             canpaint: false,
             prev_cell: [],
-            // screenMap: [],
             ref: {
                 color: {
                     "-2": "#eee",
@@ -81,10 +74,6 @@ export default {
     },
     created () {
         that = this;
-        // that.size = that.$parent.config.step;
-        // that.col = that.$parent.config.col;
-        // that.row = that.$parent.config.row;
-        // for (let i=0; i<that.tot; that.screenMap[i++]=i%2===0?-2:2);
     }
 }
 </script>

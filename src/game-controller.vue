@@ -54,6 +54,22 @@ export default {
                 };
             }
         };
+        let keys = document.querySelectorAll(".controller .outer div");
+        const mMap = ["c-up", "c-down", "c-left", "c-right"];
+        for (let i = 0; i < keys.length; i++) {
+            const el = keys[i];
+            el.addEventListener("touchstart", (e) => {
+                let j = mMap.indexOf(e.target.id);
+                that.act_key = j;
+                el.addEventListener("touchend", (e) => {
+                    that.act_key = -1;
+                }, {passive: false});
+                if (that.$parent.config.isDemo) return;
+                const rsMap = ["down", "up", "right", "left"];
+                if (that.$parent.events[rsMap[j]]) return;
+                that.$parent.events = that.$parent.controls[that.controller[j]];
+            }, {passive: false});
+        }
     },
     data () {
         return {

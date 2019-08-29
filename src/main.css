@@ -1,6 +1,5 @@
 .game-box{
     display: flex; justify-content: center; align-items: center;
-    margin: 5rem 0;
 }
 .game-main{
     box-sizing: border-box; border: .5px solid grey; border-left: 0; border-right: 0;
@@ -191,15 +190,6 @@
     overflow: hidden; width: calc(100% - 18.5rem); 
     text-overflow: ellipsis; white-space: nowrap;
 }
-/* .records .header .name:nth-child(1){
-    padding-right: 1.5rem; white-space: nowrap;
-}
-.records .header .name:nth-child(2){
-    padding-right: 1.5rem; white-space: nowrap;
-}
-.records .header .name:nth-child(3){
-    padding-right: 1.5rem; white-space: nowrap;
-} */
 .about p{
     color: #fff; font-family: "Neue Pixel Sans"; text-align: center; letter-spacing: 1.5px;
     margin: .25rem 0;

@@ -7,14 +7,14 @@
             <div class="option" v-for="(item, index) in group.opts" :key="index">
                 <div class="option-title"><span v-text="item.name"></span></div>
                 <div class="option-content type-themes" v-if="item.themes">
-                    <button :class="{'actived': item.act[i], 'chessboard': sty.chessboard}" v-for="(sty, i) in item.val" :key="i" @click="opt_click(item, idx, index, i)">
+                    <button :class="{'actived': item.act[i], 'chessboard': sty.chessboard}" v-for="(sty, i) in item.val" :key="i" @click="opt_click(item, idx, index, i)" @touchstart="opt_click(item, idx, index, i)">
                         <svg width="44" height="24">
                             <path :fill="sty.color" :stroke="sty.borderColor" :stroke-width="sty.borderWidth" :d="`M2 2h40v20h-40z${sty.cross ? 'M22 2v20' : ''}`"/>
                         </svg>
                     </button>
                 </div>
                 <div class="option-content" v-else>
-                    <button v-for="(n, i) in item.opt" :class="{'actived': item.act[i]}" :key="n" @click="opt_click(item, idx, index, i)"><span v-text="n"></span></button>
+                    <button v-for="(n, i) in item.opt" :class="{'actived': item.act[i]}" :key="n" @click="opt_click(item, idx, index, i)" @touchstart="opt_click(item, idx, index, i)"><span v-text="n"></span></button>
                 </div>
             </div>
         </div>
@@ -26,13 +26,11 @@ export default {
     name: "gameOptions",
     methods: {
         opt_click (obj, idx, index, i) {
-            console.log(obj, idx, index, i, that.groups[idx].opts[index].act.length);
             let n_act = that.fls(that.groups[idx].opts[index].act.length, i);
             that.groups[idx].opts[index].act = n_act;
             let change_tar = that.groups[idx].opts[index].val[i];
             // let configs = {};
             for (let key in change_tar) {
-                console.log(key)
                 that.$parent.config[key] = that.configs[key] = change_tar[key];
             }
             // 触发父组件 speed 的 watcher
@@ -41,7 +39,6 @@ export default {
             
             let opts = localStorage.getItem("opts");
             localStorage.setItem("opts", JSON.stringify(that.groups));
-            console.log(JSON.parse(localStorage.getItem("opts")));
         },
         fls (num, i) {
             let a = []; for (let i=0; i<num; a[i++] = false); a[i] = true; return a;
@@ -115,7 +112,6 @@ export default {
     mounted () {
         let opts = localStorage.getItem("opts");
         let configs = localStorage.getItem("configs");
-        console.log(JSON.parse(opts))
         opts && (that.groups = JSON.parse(opts));
         configs && (that.configs = JSON.parse(configs));
     }

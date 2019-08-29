@@ -5,30 +5,30 @@
                 <div class="panel" v-if="nav[0]">
                     <div class="panel-title pixel-font"><span>PIXEL SNAKE</span></div>
                     <div class="panel-content" ref="buttons">
-                        <button class="pixel-font" @click="game()">START</button>
-                        <button class="pixel-font" page="1" @click="navto($event)">OPTIONS</button>
-                        <button class="pixel-font" page="2" @click="navto($event)">RECORDS</button>
-                        <button class="pixel-font" page="3" @click="navto($event)">ABOUT</button>
+                        <button class="pixel-font" @click="game()" @touchstart="game()">START</button>
+                        <button class="pixel-font" page="1" @click="navto($event)" @touchstart="navto($event)">OPTIONS</button>
+                        <button class="pixel-font" page="2" @click="navto($event)" @touchstart="navto($event)">RECORDS</button>
+                        <button class="pixel-font" page="3" @click="navto($event)" @touchstart="navto($event)">ABOUT</button>
                     </div>
                 </div>
                 <div class="panel" v-show="nav[1]">
                     <div class="panel-title pixel-font"><span>OPTIONS</span></div>
                     <div class="panel-content" style="padding-top: 0; height: auto">
-                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
+                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)" @touchstart="navto($event)">&lt;</button></div>
                         <game-options ref="game-options"></game-options>
                     </div>
                 </div>
                 <div class="panel" v-if="nav[2]" style="height: auto;">
                     <div class="panel-title pixel-font"><span>RECORDS</span></div>
                     <div class="panel-content" style="justify-content:flex-start;">
-                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
+                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)" @touchstart="navto($event)">&lt;</button></div>
                         <game-records></game-records>
                     </div>
                 </div>
                 <div class="panel" v-if="nav[3]">
                     <div class="panel-title pixel-font"><span>ABOUT</span></div>
                     <div class="panel-content">
-                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)">&lt;</button></div>
+                        <div class="option back-btn pixel-font"><button page="0" @click="navto($event)" @touchstart="navto($event)">&lt;</button></div>
                         <game-about></game-about>
                     </div>
                 </div>
@@ -36,9 +36,9 @@
             <div class="game-settings break" v-if="brk">
                 <div class="panel">
                     <div class="panel-content" ref="buttons">
-                        <button class="pixel-font" @click="resume">RESUME</button>
-                        <button class="pixel-font" @click="retry">RETRY</button>
-                        <button class="pixel-font" @click="home">HOME</button>
+                        <button class="pixel-font" @click="resume" @touchstart="resume">RESUME</button>
+                        <button class="pixel-font" @click="retry" @touchstart="retry">RETRY</button>
+                        <button class="pixel-font" @click="home" @touchstart="home">HOME</button>
                     </div>
                 </div>
             </div>
@@ -46,13 +46,13 @@
                 <div class="panel">
                     <div class="panel-title pixel-font"><span>Game Over</span></div>
                     <div class="panel-content" ref="buttons">
-                        <div class="option back-btn pixel-font"><button @click="ovr_esc">&lt;</button></div>
+                        <div class="option back-btn pixel-font"><button @click="ovr_esc" @touchstart="ovr_esc">&lt;</button></div>
                         <p class="pixel-font">Score: {{ score_count }}, Time: {{ms2MMssms(gameOverTimeStamp - gameStartTimeStamp)}}</p>
                         <p class="pixel-font" v-if="isNewRecord">New Record!</p>
                         <p v-if="isNewRecord">
                             <input class="inputBox pixel-font" type="text" placeholder="your name here" maxlength="20" @focus="controllerShouldReflect = false; $event.target.focus();" @blur="controllerShouldReflect = true" v-model="player_name">
                         </p>
-                        <button class="pixel-font" @click="ovr_retry">RETRY</button>
+                        <button class="pixel-font" @click="ovr_retry" @touchstart="ovr_retry">RETRY</button>
                     </div>
                 </div>
             </div>
@@ -104,11 +104,9 @@ import gameRecords from "./game-records.vue";
 import gameAbout from "./game-about.vue";
 import gameController from "./game-controller.vue";
 import ruler from "./ruler.vue";
-// import { drawPath, demo, demoFn } from "./core";
 import core from "./core";
 let drawPath = core.drawPath;
 let demo = core.demo;
-console.log(demo)
 let demoFn = core.demoFn;
 export default {
     name: "gameBox",
@@ -228,7 +226,6 @@ export default {
             });
             rds.splice(10);
             localStorage.setItem("records", JSON.stringify(rds));
-            console.log(rc_item);
             that.isNewRecord = false;
         },
         ovr_esc () {
@@ -238,7 +235,6 @@ export default {
         ovr_retry () {
             that.addRecord();
             that.retry();
-            console.log(that.player_name);
         },
         wasted () { // 游戏结束
             clearInterval(that.gameTimer);
@@ -253,7 +249,6 @@ export default {
                 that.isNewRecord = true;
             }
             that.ovr = true;
-            console.log("游戏结束", that.score_count);
         },
         rePlayDemo () {
             that.score_count = 0;
@@ -301,7 +296,7 @@ export default {
                 if (emp.indexOf(JSON.stringify) === -1) emp.push(JSON.stringify(newFood));
                 for (let i=0, l=that.snakeMap.length; i<l; i++) {
                     if (newFood[0] === that.snakeMap[i][0] && newFood[1] === that.snakeMap[i][1]) food();
-                    if (emp.length >= that.tot) {console.log("game_end!"); that.gameEnd = true; break;}
+                    if (emp.length >= that.tot) {that.gameEnd = true; break;}
                 }
             };
             food();
@@ -352,7 +347,6 @@ export default {
             ) {
                 that.wasted(); // GAMEOVER！
             }
-            // console.log(hd[0], that.config.row === hd[0], that.config.col === hd[1]);
         }
     },
     data () {
@@ -445,7 +439,6 @@ export default {
             that.startGameNow, 
             that.config.isDemo ? demo.speed : that.config.speed
         )
-        console.log(JSON.parse(localStorage.getItem("configs")))
         let config = localStorage.getItem("configs");
         if (config) {
             let cfg = JSON.parse(config);
@@ -453,14 +446,8 @@ export default {
                 that.config[key] = cfg[key]
             }
         }
-        // that.snakeMap = [[35,42],[35,43],[35,44]];
-        // that.food = [0,0];
-        // that.drawPath(that.snakeMap)
-        // that.setFood();
-        // clearInterval(that.gameTimer)
     },
     mounted () {
-        console.log(that.$refs);
         document.onkeydown = function (e) {
             switch (e.keyCode) {
                 case 38: case 87:// ↑ W
@@ -483,14 +470,6 @@ export default {
                     if (that.events.left) return;
                     that.events = that.controls["right"];
                     break;
-                // case 32: // spacebar
-                //     // clearInterval(that.gameTimer)
-                //     if (!that.config.isDemo) { // 游戏正在进行
-                //         clearInterval(that.gameTimer);
-                //         that.brk = true; // 游戏暂停并显示对话框
-                //         return false;
-                //     }
-                //     break;
                 case 9: // tab
                     if (that.gameOnFrontPage) {
                         let buttons = that.$refs["buttons"].querySelectorAll("button");
@@ -503,7 +482,6 @@ export default {
                     if (that.act_page !== 0) {
                         that.act_page = 0;
                     }
-                    console.log("esc")
                     if (!that.config.isDemo && !that.ovr) { // 游戏正在进行
                         clearInterval(that.gameTimer);
                         that.brk = true; // 游戏暂停并显示对话框
